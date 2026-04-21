@@ -19,7 +19,29 @@ export interface FormFieldTypeString {
 	kind: 'string';
 }
 
-// FormFieldTypeDocumentURI defines an input for a file or directory URI.
+// FileExistence whether the file denoted by a DocumentURI exists.
+//
+// It is a bit set allowing combinations of existence states. For
+// example, New|Existing allows either state.
+export enum FileExistence {
+	// New indicates that file has not yet been created.
+	New = 1 << 0,
+	// Existing indicates that the file exists already.
+	Existing = 1 << 1
+}
+
+// FileType represents the expected filesystem resource type.
+//
+// It is a bit set allowing combinations of file types. For example, Regular|Directory
+// allows either types.
+export enum FileType {
+	// Regular indicates the resource could be a regular file.
+	Regular = 1 << 0,
+	// Directory indicates the resource could be a directory.
+	Directory = 1 << 1
+}
+
+// FormFieldTypeFile defines an input for a file or directory URI.
 //
 // The client determines the best mechanism to collect this information from
 // the user (e.g., a graphical file picker, a text input with autocomplete, etc).
@@ -27,8 +49,16 @@ export interface FormFieldTypeString {
 // The value returned by the client must be a valid "DocumentUri" as defined
 // in the LSP specification:
 // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#documentUri
-export interface FormFieldTypeDocumentURI {
-	kind: 'documentURI';
+export interface FormFieldTypeFile {
+	kind: 'file';
+
+	// Existence constraint.
+	existence: FileExistence;
+
+	// Type specifies the set of allowed file types (regular file, directory, etc).
+	//
+	// Only applicable against existing file.
+	type: FileType;
 }
 
 // FormFieldTypeBool defines a boolean input.
@@ -107,7 +137,7 @@ export interface FormFieldTypeList {
 // FormFieldType acts as a Discriminated Union based on the 'kind' property.
 export type FormFieldType =
 	| FormFieldTypeString
-	| FormFieldTypeDocumentURI
+	| FormFieldTypeFile
 	| FormFieldTypeBool
 	| FormFieldTypeNumber
 	| FormFieldTypeEnum
@@ -470,7 +500,10 @@ async function promptForField(field: FormField, prevAnswer: any | undefined): Pr
 	const type = field.type;
 
 	switch (type.kind) {
-		case 'documentURI': {
+		case 'file': {
+			// TODO(hxjiang): support reading the resource kind & existence
+			// from the file kind.
+
 			// UX Decision: Explicitly separate "Open" and "Create" flows.
 			//
 			// We use this "Intent Menu" to bypass a limitation in the
@@ -531,14 +564,14 @@ async function promptForField(field: FormField, prevAnswer: any | undefined): Pr
 					openLabel: 'Select',
 					defaultUri: defaultUri,
 					title: field.description || 'Select Existing File'
-				});
+				} as vscode.OpenDialogOptions);
 				return uri && uri[0] ? uri[0].toString() : undefined;
 			} else {
 				const uri = await vscode.window.showSaveDialog({
 					defaultUri: defaultUri,
 					saveLabel: 'Select',
 					title: field.description || 'Create New File'
-				});
+				} as vscode.SaveDialogOptions);
 				return uri ? uri.toString() : undefined;
 			}
 		}
