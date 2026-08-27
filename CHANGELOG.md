@@ -14,6 +14,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 * Replaced the `wmic`-based Windows process picker for attach debugging with the native `@vscode/win32-app-container-tokens` module, as the `wmic` tool itself is deprecated on Windows ([#3687](https://github.com/golang/vscode-go/issues/3687)).
 * Language client trace logging is now integrated with VS Code's `LogOutputChannel` log level system. To view verbose trace logs in the `gopls` output channel, in addition to setting `"go.trace.server": "verbose"`, you must also set the `gopls` channel log level to `Trace` (using the `Developer: Set Log Level...` command or channel settings).
 
+## v0.56.1
+
+Date: 2026-08-27
+
+**Full Changelog**: https://github.com/golang/vscode-go/compare/v0.56.0...v0.56.1
+**Milestone**: https://github.com/golang/vscode-go/issues?q=milestone%3Av0.56.1
+
 ## v0.57.2 (prerelease)
 
 Date: 2026-08-18
